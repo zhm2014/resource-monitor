@@ -1,0 +1,36 @@
+#CentOS smoke checks for standup module.
+---
+title: Test suite for verifying standup module on CentOS.
+checks:
+   -  name: "Test common 1"
+      description: Check if the OS is CentOS
+      command: cat /etc/os-release |grep ^NAME|grep CentOS
+
+   -  name: "Test web 1"
+      description: Check if Apache service is running
+      roles: web
+      command: sudo service httpd status | grep -v "not running"
+      heal: sudo service httpd start
+
+   -  name: "Test web 2"
+      description: Check if there is any Apache activity
+      roles: web
+      command: ls /var/log/httpd/access_log 
+
+   -  name: "Test db 1"
+      description: Check if mysql service is running
+      roles: db
+      command: ps -ef |grep mariadb|wc -l
+      heal: sudo service mariadb start
+      output_compare:
+         type: number
+         value: 3
+         operator: EQ
+
+   -  name: "Test web 3"
+      description: Verify if there are more than 2 Apache processes running
+      command: ps -ef | grep httpd | grep -v color | wc -l
+      output_compare:
+         type: number
+         value: 2
+         operator: GT
